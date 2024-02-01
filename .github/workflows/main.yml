@@ -1,4 +1,4 @@
-name: Docker Image with Node:18-19
+name: Docker Image for Redis
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version: [bitnami]
+        version: [latest]
 
     steps:
       - name: Checkout Github Action
@@ -27,8 +27,8 @@ jobs:
       - name: Build the Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.node_version }}/
-          tags: ${{ vars.IMAGE_NAME }}:${{ matrix.node_version }}
+          context: ${{ matrix.version }}/
+          tags: ${{ vars.IMAGE_NAME }}:${{ matrix.version }}
           platforms: linux/amd64
           push: true
 
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version: [bitnami]
+        version: [latest]
     needs: [build]
     steps:
       - name: Checkout Github Action
@@ -58,8 +58,8 @@ jobs:
         uses: snyk/actions/docker@master
         continue-on-error: true
         with:
-          image: ${{ vars.IMAGE_NAME }}:${{ matrix.node_version }}
-          args: --file=${{ matrix.node_version }}/Dockerfile --sarif-file-output=snyk.sarif
+          image: ${{ vars.IMAGE_NAME }}:${{ matrix.version }}
+          args: --file=${{ matrix.version }}/Dockerfile --sarif-file-output=snyk.sarif
         env:
             SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
