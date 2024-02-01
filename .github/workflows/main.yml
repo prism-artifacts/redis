@@ -1,0 +1,69 @@
+name: Docker Image with Node:18-19
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [bitnami]
+
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v3
+
+      - name: Login to Github container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{secrets.GHCR_USER_NAME}}
+          password: ${{secrets.GHCR_USER_PAT}}
+
+      - name: Build the Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.node_version }}/
+          tags: ${{ vars.IMAGE_NAME }}:${{ matrix.node_version }}
+          platforms: linux/amd64
+          push: true
+
+  scan:
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      security-events: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [bitnami]
+    needs: [build]
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v3
+
+      - name: Login to Github container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{secrets.GHCR_USER_NAME}}
+          password: ${{secrets.GHCR_USER_PAT}}
+
+      - name: Scan Docker image 🐳
+        uses: snyk/actions/docker@master
+        continue-on-error: true
+        with:
+          image: ${{ vars.IMAGE_NAME }}:${{ matrix.node_version }}
+          args: --file=${{ matrix.node_version }}/Dockerfile --sarif-file-output=snyk.sarif
+        env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk report as sarif 📦
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
