@@ -1,4 +1,4 @@
-name: Docker Image for Jenkins
+name: Docker Image for Redis cluster
 on:
   push:
     branches: [ "main" ]
