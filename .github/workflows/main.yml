@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: [stack]
+        version: [latest]
 
     steps:
       - name: 'Checkout Github Action'
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: [stack]
+        version: [latest]
     needs: [build]
     steps:
       - name: Checkout Github Action
